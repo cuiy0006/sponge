@@ -7,6 +7,7 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <queue>
 
 //! \brief An in-order byte stream.
 
@@ -16,6 +17,15 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
+    size_t _capacity;
+
+    std::string _data;
+
+    bool _eoi;
+
+    size_t _total_written;
+    
+    size_t _total_popped;
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 

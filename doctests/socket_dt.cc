@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include <vector>
+#include <iostream>
 
 int main() {
     try {
@@ -19,7 +20,8 @@ int main() {
         } {
 #include "socket_example_3.cc"
         }
-    } catch (...) {
+    } catch (std::exception& e) {
+        std::cout << "--------------" << e.what() << std::endl;
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
