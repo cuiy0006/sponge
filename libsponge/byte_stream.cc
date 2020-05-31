@@ -27,20 +27,20 @@ size_t ByteStream::write(const string &data) {
         set_error();
         return 0;
     }
-    size_t prev_size = _data.size();
-    if(_data.size() + data.size() > _capacity){
-        _data += data.substr(0, _capacity - _data.size());
+    size_t prev_buffer_size = buffer_size();
+    if(data.size() > remaining_capacity()){
+        _data += data.substr(0, remaining_capacity());
     } else {
         _data += data;
     }
-    size_t written = _data.size() - prev_size;
+    size_t written = buffer_size() - prev_buffer_size;
     _total_written +=  written;
     return written;
 }
 
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(const size_t len) const {
-    size_t length = min(len, _data.size());
+    size_t length = min(len, buffer_size());
     return _data.substr(0, length);
 }
 
@@ -50,7 +50,7 @@ void ByteStream::pop_output(const size_t len) {
         set_error();
         return;
     }
-    size_t length = min(len, _data.size());
+    size_t length = min(len, buffer_size());
     _data = _data.substr(length, string::npos);
     _total_popped += length;
 }
