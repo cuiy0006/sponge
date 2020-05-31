@@ -23,6 +23,10 @@ ByteStream::ByteStream(const size_t capacity)
 }
 
 size_t ByteStream::write(const string &data) {
+    if(input_ended()){
+        set_error();
+        return 0;
+    }
     size_t prev_size = _data.size();
     if(_data.size() + data.size() > _capacity){
         _data += data.substr(0, _capacity - _data.size());
@@ -42,6 +46,10 @@ string ByteStream::peek_output(const size_t len) const {
 
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(const size_t len) {
+    if(len > 0 && eof()){
+        set_error();
+        return;
+    }
     size_t length = min(len, _data.size());
     _data = _data.substr(length, string::npos);
     _total_popped += length;
@@ -55,12 +63,12 @@ bool ByteStream::input_ended() const { return _eoi; }
 
 size_t ByteStream::buffer_size() const { return _data.size(); }
 
-bool ByteStream::buffer_empty() const { return _data.size() == 0; }
+bool ByteStream::buffer_empty() const { return buffer_size() == 0; }
 
-bool ByteStream::eof() const { return _eoi && _data.size() == 0; }
+bool ByteStream::eof() const { return input_ended() && buffer_empty(); }
 
 size_t ByteStream::bytes_written() const { return _total_written; }
 
 size_t ByteStream::bytes_read() const { return _total_popped; }
 
-size_t ByteStream::remaining_capacity() const { return _capacity - _data.size(); }
+size_t ByteStream::remaining_capacity() const { return _capacity - buffer_size(); }
