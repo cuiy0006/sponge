@@ -1,6 +1,7 @@
 #include "stream_reassembler.hh"
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 // Dummy implementation of a stream reassembler.
 
@@ -14,8 +15,8 @@ using namespace std;
 StreamReassembler::StreamReassembler(const size_t capacity) 
 : _unassembled_bytes(0),
  _curr_pos(0),
-  _eof_index(_capacity),
- _cache(capacity, '\0'),
+ _eof_index(capacity),
+ _cache(capacity, make_pair(false, '\0')),
  _output(capacity),
  _capacity(capacity)
  {}
@@ -34,10 +35,12 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         if(i == _eof_index){
             break;
         }
-        if(_cache[j] == '\0'){
-            _cache[j++] = data[i];
+        if(!_cache[j].first){
+            _cache[j].first = true;
+            _cache[j].second = data[i];
             ++_unassembled_bytes;
         }
+        ++j;
     }
 
     if(eof){
@@ -46,19 +49,20 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
 
     std::string to_write = "";
     for(size_t i = _curr_pos; i < _capacity; ++i){
-        if(_cache[i] == '\0'){
+        if(!_cache[i].first){
             break;
         }
-        to_write += _cache[i];
+        to_write += _cache[i].second;
     }
 
     if(to_write.size() != 0){
         _unassembled_bytes -= to_write.size();
         _curr_pos += to_write.size();
-        _output.write(to_write);
-        if(_curr_pos == _eof_index){
-            _output.end_input();
-        }
+        _output.write(move(to_write));
+    }
+
+    if(_curr_pos == _eof_index){
+        _output.end_input();
     }
 }
 
