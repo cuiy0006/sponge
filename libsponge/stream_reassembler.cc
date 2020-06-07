@@ -29,6 +29,10 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         return;
     }
 
+    if(eof){
+        _eof_index = std::min(_capacity, index + data.size());
+    }
+
     size_t j = index;
 
     for(size_t i = 0; i < data.size(); ++i){
@@ -41,10 +45,6 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
             ++_unassembled_bytes;
         }
         ++j;
-    }
-
-    if(eof){
-        _eof_index = std::min(_capacity, index + data.size());
     }
 
     std::string to_write = "";
