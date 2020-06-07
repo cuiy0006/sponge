@@ -36,7 +36,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     size_t j = index;
 
     for(size_t i = 0; i < data.size(); ++i){
-        if(i == _eof_index){
+        if(j == _eof_index){
             break;
         }
         if(!_cache[j].first){
