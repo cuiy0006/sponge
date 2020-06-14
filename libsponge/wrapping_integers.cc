@@ -1,12 +1,14 @@
+// export CTEST_OUTPUT_ON_FAILURE=1 // this is to guarantee cout on standard output
+
+
 #include "wrapping_integers.hh"
+#include <math.h>
+#include <iostream>
 
 // Dummy implementation of a 32-bit wrapping integer
 
 // For Lab 2, please replace with a real implementation that passes the
 // automated checks run by `make check_lab2`.
-
-template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
@@ -14,8 +16,14 @@ using namespace std;
 //! \param n The input absolute 64-bit sequence number
 //! \param isn The initial sequence number
 WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
-    DUMMY_CODE(n, isn);
-    return WrappingInt32{0};
+    uint64_t base = pow(2, 32);
+    uint64_t absolute = n;
+
+    uint64_t remainder = absolute % base;
+    uint64_t seqno = remainder + isn.raw_value();
+    seqno = seqno % base;
+
+    return WrappingInt32{static_cast<uint32_t>(seqno)};
 }
 
 //! Transform a WrappingInt32 into an "absolute" 64-bit sequence number (zero-indexed)
@@ -29,6 +37,26 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
-    DUMMY_CODE(n, isn, checkpoint);
-    return {};
+    uint64_t base = pow(2, 32);
+    uint32_t remainder = n - isn;
+    uint64_t tail = remainder;
+
+    if(tail > checkpoint){
+        return tail;
+    }
+
+    uint64_t body = 0;
+    while(body + tail <= UINT64_MAX - base){
+        uint64_t absolute = body + tail;
+        if(absolute <= checkpoint && absolute + base >= checkpoint){
+            if(checkpoint - absolute <= absolute + base - checkpoint){
+                break;
+            } else{
+                body += base;
+                break;
+            }
+        }
+        body += base;
+    }
+    return body + tail;
 }
